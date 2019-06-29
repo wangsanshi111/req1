@@ -24,11 +24,8 @@ public class TradeController {
     public ResultInfo<Trade> tradeLog(@DateTimeFormat(pattern = "yyyy-MM-dd")Date begin, @DateTimeFormat(pattern = "yyyy-MM-dd")Date end, HttpSession session){
         ResultInfo<Trade> info = new ResultInfo<>();
         Account account = (Account) session.getAttribute("account");
-        System.out.println(begin);
-        System.out.println(end);
         if (account != null) {
             List<Trade> tradeList = service.findByDate(begin, end, account.getAccountID());
-            tradeList.forEach(System.out::println);
             info.setFlag(true);
             info.setList(tradeList);
         }else {

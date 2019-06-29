@@ -77,9 +77,7 @@
         function tradeLog() {
             //获取时间段
             var begin = $("#begin").val();
-            alert(begin)
             var end = $("#end").val();
-            alert(end)
             $("#msg_tr").remove();
             $.get("trade/tradeLog", {begin: begin, end: end}, function (data) {
                 if (data.flag) {
