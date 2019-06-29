@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>黑马银行个人网上银行系统</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+
+    <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+    <script src="js/bootstrap.min.js"></script>
+    <style>
+        .menu {
+            text-decoration: none;
+            margin: 20px;
+        }
+
+        .remaining {
+            width: 500px;
+            height: 100px;
+            line-height: 100px;
+            border: 1px solid #5bc0de;
+        }
+
+        table {
+            width: 500px;
+        }
+
+        .b1{
+            border: 1px solid #5bc0de;
+
+        }
+        td{
+            padding: 10px;
+        }
+    </style>
+    <script>
+        $(function () {
+            $.get("account/checkLogin", {}, function (data) {
+                if (data) {
+                    $("#wellcome").html("【" + data.accountID + "用户】,欢迎你登录黑马银行个人网上银行系统！")
+                } else {
+                    $("#wellcome").html("您尚未登录请<a href='index.html'>登录</a>");
+                }
+            });
+            return false;
+        });
+
+        function remaining() {
+            $("#content").html("<h1>个人余额查询</h1>");
+
+            $.get("account/remaining", {}, function (data) {
+                $("#content").append("<div class='remaining center-block'>你的账号余额为：&yen;[" + data.remaining + "]</div>");
+            });
+        }
+
+
+
+        function toTradeLog() {
+            $("#content").html("<h1>交易记录查询</h1>");
+            $("#content").append("<table  align='center' class='text-center'><tr><td><h3>请输入交易时段</h3></td></tr></table>");
+            $("table").append("<tr><td>开始时间:<input type='date' id='begin' placeholder='2000-01-01'></td></tr>")
+            $("table").append("<tr><td>结束时间:<input type='date' id='end' placeholder='2000-01-30'></td></tr>")
+            $("table").append("<tr><td>*本查询只能查询自当前时间起一个月内的业务</td></tr>")
+            $("table").append("<tr><td><input type='button' value='查看交易明细' onclick='tradeLog()' >  <input type='button' value='取消操作' onclick='$("+"'#content').html('`)"+"' ></td></tr>")
+            $("table,tr").addClass("b1");
+        }
+
+
+
+        function tradeLog() {
+            //获取时间段
+            var begin = $("#begin").val();
+            alert(begin)
+            var end = $("#end").val();
+            alert(end)
+            $("#msg_tr").remove();
+            $.get("trade/tradeLog", {begin: begin, end: end}, function (data) {
+                if (data.flag) {
+
+                    $("table").html("<tr><td>ID</td><td>交易卡号</td><td>交易金额</td><td>交易类型</td><td>交易日期</td><td>交易摘要</td></tr>");
+                    for (var i = 0; i < data.list.length; i++) {
+                        var time = data.list[i].tradetime;
+                        ddd = new Date(time);
+                        var year =  ddd.getFullYear();
+                        var month = ddd.getMonth() + 1;
+                        var da = ddd.getDate();
+                        if(data.list[i].tradeDigest == null){
+                            data.list[i].tradeDigest = "";
+                        }
+                        $("table").append("<tr><td>" + data.list[i].id + "</td><td>" + data.list[i].accountID + "</td><td>" + data.list[i].trademoney + "</td><td>" + data.list[i].tradetype + "</td><td>" + year + "年" + month + "月" + da + "日" + "</td><td>" + data.list[i].tradedigest + "</td></tr>");
+                    }
+                    $("tr:odd").css("background-color", "#8899aa");
+                    $("table,tr,td").addClass("b1");
+                } else {
+                    $("table tr:first").after("<tr id='msg_tr'><td><font color='red'>" + data.msg + "</font></td></tr>");
+                }
+            });
+
+        }
+
+        function toTrade() {
+            $("#content").html("<h1>行内单笔转账</h1>");
+            $("#content").append("<table  align='center' class='text-center'><tr><td><h3>行内单笔转账清单</h3></td></tr></table>");
+            $("table").append("<tr><td>接收账号:<input id='toAccountID' ></td></tr>")
+            $("table").append("<tr><td>转账金额:<input id='money' ></td></tr>")
+            $("table").append("<tr><td><input type='button' value='进行转账' onclick='trade()' >  <input type='button' value='取消操作' onclick='$(\'#content\').html(\'\')' ></td></tr>")
+            $("table,tr").addClass("b1");
+        }
+
+
+        function trade() {
+            var toAccountID = $("#toAccountID").val();
+            var money = $("#money").val();
+            $("#msg_tr").remove();
+            $.get("account/trade", {toAccountID: toAccountID, money: money}, function (data) {
+                if (data.flag) {
+                    $("#content").html("<h1>行内单笔转账成功</h1>");
+                    $("#content").append("<div class='remaining center-block'>"+data.msg+"</div>");
+                } else {
+                    $("table tr:first").after("<tr id='msg_tr'><td><font color='red'>" + data.msg + "</font></td></tr>");
+                }
+            });
+
+        }
+    </script>
+</head>
+<body>
+<p id="wellcome"></p>
+<div class="text-center">
+    <h3>操作菜单</h3>
+    <a class="menu" href="javascript:$('#content').html('')">个人首页</a>
+    <a class="menu" href="javascript:remaining()">账号余额查询</a>
+    <a class="menu" href="javascript:toTradeLog()">交易记录查询</a>
+    <a class="menu" href="javascript:toTrade()">行内单笔转账</a>
+</div>
+<div class="text-center" id="content">
+
+</div>
+
+</body>
+</html>
